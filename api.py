@@ -12,18 +12,22 @@ password        = "password"
 graphDB_Driver  = GraphDatabase.driver(uri, auth=(userName, password))
 
 def get_all_nodes():
-    all_nodes_query = "MATCH (x:university) RETURN x"
-    nodes = graphDB_Session.run(all_nodes_query)
+    all_nodes_query = "MATCH (x) RETURN x"
+    nodes = graphDB_Driver.session().run(all_nodes_query)
+    print(all_nodes_query)
     return nodes
 
 def get_node(attribut, value):
     one_node_query = "MATCH (x {" + attribut +": '" + value + "'}) RETURN x"
-    node = graphDB_Session.run(one_node_query)
-    return node
+    nodes = graphDB_Driver.session().run(one_node_query)
+    print(one_node_query)
+    for node in nodes:
+        return node
 
 def get_all_edges():
     all_edges_query = "match (x) -[r]-> (y) return r"
-    all_edges = graphDB_Session.run(all_edges_query)
+    all_edges = graphDB_Driver.session().run(all_edges_query)
+    print(all_edges_query)
     return all_edges
 
 def get_edge(attribut, value, is_str):
@@ -31,28 +35,28 @@ def get_edge(attribut, value, is_str):
         one_edge_query = "match (x) -[r {" + attribut +": '" + value + "'}]-> (y) return r"
     else:
         one_edge_query = "match (x) -[r {" + attribut +": " + value + "}]-> (y) return r"
-    edge = graphDB_Session.run(one_edge_query)
-    return node
+    edge = graphDB_Driver.session().run(one_edge_query)
+    print(one_edge_query)
+    return edge
 
 def create_node(name, type, attributs):
     create_query = "CREATE (" + name + ":" + type
 
     if len(attributs) == 1:
-        create_query += "{" +attributs[0][0] + ": '" + attributs[0][1] + "'})"
+        create_query += " {" +attributs[0][0] + ": '" + attributs[0][1] + "'})"
     elif len(attributs) == 0:
         create_query += ")"
     else:
-        create_query += "{" 
+        create_query += " {" 
         for attribut in attributs:
             create_query += attribut[0] + ": '" + attribut[1] + "',"
         create_query = create_query[:-1]
         create_query += "})"
-    graphDB_Session.run(create_query)
+    print(create_query)
+    return create_query
 
 def create_edge(start, end, type_connection, attributs):
-
-
-    create_query = "CREATE (" + start + ")-[:" + type_connection   
+    create_query = "MATCH (a) WHERE ID(a) = " + str(start) + " MATCH (b) WHERE ID(b) = " + str(end) + " CREATE (a)-[:" + type_connection   
     if len(attributs) == 1:
         create_query += "{" + attributs[0][0] + ": '" + attributs[0][1] + "'}]"
     elif len(attributs) == 0:
@@ -63,8 +67,18 @@ def create_edge(start, end, type_connection, attributs):
             create_query += attribut[0] + ": '" + attribut[1] + "',"
         create_query = create_query[:-1]
         create_query += "}]"
-    create_query += "->(" + end + ")" 
-     
+    create_query += "->(b)"
+    print(create_query)
+    return create_query
 
-df = pandas.read_csv("communes-departement-region.csv")
-print(df[:100])
+def delete_all_query():
+    query = "MATCH (x) -[r]-> (y) DELETE r"
+    graphDB_Driver.session().run(query)
+    query = "MATCH (a) DELETE a"
+    graphDB_Driver.session().run(query)
+
+def get_id(node):
+    return node['x'].id
+
+def exectute_request(query):
+    graphDB_Driver.session().run(query)
