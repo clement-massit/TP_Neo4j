@@ -82,3 +82,9 @@ def get_id(node):
 
 def exectute_request(query):
     graphDB_Driver.session().run(query)
+
+def link_city_departement(city_name, departement_code, number):
+    query_match = "MATCH (x" + str(number) +  " {code: '" + departement_code + "'}) MATCH (y" +  str(number) + " {nom: '"+city_name+"'})" 
+    query_create = "CREATE (x" + str(number) +  ")-[:Est_dans_le_département]->(y" + str(number) +  ")"
+    print(query_match,query_create)
+    return query_match,query_create
