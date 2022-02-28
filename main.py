@@ -22,18 +22,19 @@ for index, row in departement.iterrows():
 
 api.exectute_request(query)
 
-input("wait")
 
+# Drop the cities with the same INSEE code
 df = df.drop_duplicates(subset='code_commune_INSEE')
 
 query = ""
 
+
+# Create and execute the query to create the first 1000 cities
 for index, row in df[:1000].iterrows():
     query += api.create_node(row['nom_commune_postal'].replace(" ", ""),"commune", [["nom", row['nom_commune'].replace("'", " ")]])
 api.exectute_request(query)
 
-input("wait")
-
+# Link the first 1000 cities to their respective departement
 number = 0
 query_match = ""
 query_create = ""
@@ -55,3 +56,8 @@ for index, row in df[:1000].iterrows():
         print("Made the first " + str(number) + " cities")
         query_match = ""
         query_create = ""
+
+query = query_match + query_create
+print(query)
+api.exectute_request(query)
+print("Made the first " + str(number) + " cities")
